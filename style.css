@@ -15,6 +15,8 @@ nav {
   --color-accent: oklch(80% 3% 200);
   accent-color: var(--color-accent);
   /* background-color: oklch(from var(--color-accent) 95% 5% h) */
+  --border-color: oklch(50% 10% 200 / 40%);
+  border-bottom-color: var(--border-color);
 }
 nav ul {
   display: contents;
@@ -23,9 +25,6 @@ nav li {
   display: contents;
 }
 nav a {
-    /* Set line height to 1.5 times the font size
-         and use the OS’s UI font as the website font
-       */
     flex: 1;
     text-decoration: none;
     color: inherit;
@@ -35,7 +34,7 @@ nav a {
 }
 nav a:hover {
   border-bottom: 0.4em solid var(--color-accent);
-  background-color: oklch(from var(--color-accent) 95% 5% h);
+  background-color: color-mix(in oklch, var(--color-accent), canvas 85%);
 }
 nav a.current {
   border-bottom: 0.4em solid oklch(80% 3% 200);
@@ -44,6 +43,20 @@ nav a.current {
 :root {
   --color-accent: oklch(80% 3% 200);
 }
+html {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+body, nav, .color-scheme, nav a {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
+}
+
 
 body {
   max-width: 100ch;
@@ -82,6 +95,19 @@ h1 {
 h1, h2, h3, h4, h5, h6 {
   line-height: 1.1;
   text-wrap: balance;
+}
+:root {
+  color-scheme: light dark;
+}
+.color-scheme {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 80%;
+  font-family: inherit;
+}
+.color-scheme select {
+  font: inherit;
 }
 
 
