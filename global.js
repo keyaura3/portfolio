@@ -73,7 +73,7 @@ if ("colorScheme" in localStorage) {
 const form = document.querySelector("form");
 
 form?.addEventListener("submit", (event) => {
-  event.preventDefault(); // prevent default form submission
+  event.preventDefault(); 
 
   const data = new FormData(form);
   const params = [];
@@ -85,6 +85,6 @@ form?.addEventListener("submit", (event) => {
   const query = params.join("&");
   const url = `${form.action}?${query}`;
 
-  location.href = url; // triggers mail client
+  location.href = url; 
 });
 
