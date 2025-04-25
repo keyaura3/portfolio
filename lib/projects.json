@@ -1,0 +1,74 @@
+[
+    {
+        "title": "Text-to-SQL and RAG Chatbot ",
+        "year": "2024",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "This is a private and local RAG/Text-to-SQL chatbot made during my summer internship at Collins Aerospace."
+    },
+    {
+        "title": "Study of Supervised Machine Learning Algorithms",
+        "year": "2024",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "A Comparative Study of Supervised Machine Learning Algorithms Across Diverse Datasets and Partitions."
+    },
+    {
+        "title": "Commuter Census Data",
+        "year": "2023",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "Finding the number of New York residents that commute 90 minutes or more to a workplace based of given Census Data."
+    },
+    {
+        "title": "Appointment Scheduling App",
+        "year": "2023",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "UX/UI Design Appointment Scheduling App"
+    },
+    {
+        "title": "League of Legends Analysis",
+        "year": "2024",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "This project focuses on analyzing the League of Legends (LoL) 2022 Competition Dataset, which contains detailed statistics for over 150,000 games played in 2022."
+    },
+    {
+        "title": "News Network Engagement",
+        "year": "2023",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "This is an analysis on the news network engagement and whether or not News Netwoks purposely posts more negative news than positive to get higher engagements."
+    },
+    {
+        "title": "Basic Image Processesing App",
+        "year": "2021",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "In this project, I made a basic image processing app for a academic data science course."
+    },
+    {
+        "title": "Image Editor",
+        "year": "2022",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "In this project, I made a simple image editor that allows users to edit an image by rotating, lowering resolution, and also patching a smaller image onto it."
+    },
+    {
+        "title": "Marketing Attribution Queries",
+        "year": "2022",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "Using SQL and touch attribution to map customers’ journey on a website."
+    },
+    {
+        "title": "Dream Valence",
+        "year": "2022",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "Statistical Analysis on Dream Valence Using Sentiment Analysis Package VADER"
+    },
+    {
+        "title": "Lorem Ipsum",
+        "year": "2021",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    },
+    {
+        "title": "Lorem Ipsum",
+        "year": "2021",
+        "image": "https://vis-society.github.io/labs/2/images/empty.svg",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    }
+]
