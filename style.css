@@ -149,3 +149,65 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   color: #222;
 }
+
+.project-year {
+  font-style: italic;
+  font-family: Baskerville, serif;
+  font-variant-numeric: oldstyle-nums;
+  color: gray;
+}
+
+#projects-pie-plot {
+  max-width: 20em;
+  margin-block: 2em;
+  overflow: visible;
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9em, 1fr));
+  gap: 1em;
+  padding: 1em;
+  border: 1px solid #ccc;
+  margin-top: 1em;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: sans-serif;
+}
+
+.legend .swatch {
+  width: 1em;
+  height: 1em;
+  aspect-ratio: 1 / 1;
+  display: inline-block;
+  background-color: var(--color);
+  border-radius: 0.25em;
+}
+
+.chart-container {
+  display: flex;
+  gap: 2em;
+  align-items: flex-start;
+  margin-top: 2em;
+}
+
+path {
+  transition: 300ms;
+  cursor: pointer;
+}
+
+svg:has(path:hover) path:not(:hover) {
+  opacity: 0.5;
+}
+
+.selected {
+  --color: oklch(60% 45% 0) !important;
+}
+
+.selected:is(path) {
+  fill: var(--color);
+}
