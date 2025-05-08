@@ -211,3 +211,13 @@ svg:has(path:hover) path:not(:hover) {
 .selected:is(path) {
   fill: var(--color);
 }
+
+.gridlines line {
+  stroke: #ccc;
+  stroke-opacity: 0.4;
+  shape-rendering: crispEdges;
+}
+
+.gridlines path {
+  display: none;
+}
