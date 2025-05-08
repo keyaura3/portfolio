@@ -221,3 +221,26 @@ svg:has(path:hover) path:not(:hover) {
 .gridlines path {
   display: none;
 }
+
+.tooltip {
+  position: fixed;
+  top: 1em;
+  left: 1em;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.5em;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 0.5em 1em;
+  font-size: 0.9em;
+  transition: 0.3s ease;
+  pointer-events: none;
+}
+
+dl.info {
+  transition-duration: 500ms;
+  transition-property: opacity, visibility;
+}
+
+dl.info[hidden]:not(:hover, :focus-within) {
+  opacity: 0;
+  visibility: hidden;
+}

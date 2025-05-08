@@ -112,7 +112,7 @@ function renderScatterPlot(data, commits) {
         .attr('transform', `translate(${margin.left}, 0)`)
         .call(d3.axisLeft(yScale).tickFormat(d => `${String(d % 24).padStart(2, '0')}:00`));
 
-    svg.append('g')
+        svg.append('g')
         .attr('class', 'dots')
         .selectAll('circle')
         .data(commits)
@@ -121,7 +121,14 @@ function renderScatterPlot(data, commits) {
         .attr('cy', d => yScale(d.hourFrac))
         .attr('r', 5)
         .attr('fill', d => colorScale(d.hourFrac))
-        .attr('opacity', 0.7);
+        .attr('opacity', 0.7)
+        .on('mouseenter', (event, commit) => {
+          renderTooltipContent(commit);
+          updateTooltipVisibility(true);
+          updateTooltipPosition(event);
+        })
+        .on('mousemove', updateTooltipPosition)
+        .on('mouseleave', () => updateTooltipVisibility(false));
 }
 
 let data = await loadData();
@@ -129,3 +136,24 @@ let commits = processCommits(data);
 
 renderCommitInfo(data, commits);
 renderScatterPlot(data, commits);
+
+function renderTooltipContent(commit) {
+    document.getElementById('commit-link').textContent = commit.id;
+    document.getElementById('commit-link').href = commit.url;
+    document.getElementById('commit-date').textContent = commit.date;
+    document.getElementById('commit-time').textContent = commit.time;
+    document.getElementById('commit-author').textContent = commit.author;
+    document.getElementById('commit-lines').textContent = commit.totalLines;
+}
+  
+function updateTooltipVisibility(isVisible) {
+    const tooltip = document.getElementById('commit-tooltip');
+    tooltip.hidden = !isVisible;
+}
+
+function updateTooltipPosition(event) {
+    const tooltip = document.getElementById('commit-tooltip');
+    tooltip.style.left = `${event.clientX + 10}px`;
+    tooltip.style.top = `${event.clientY + 10}px`;
+}
+  
