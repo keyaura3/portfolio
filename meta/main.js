@@ -81,6 +81,11 @@ function renderScatterPlot(data, commits) {
     const usableWidth = width - margin.left - margin.right;
     const usableHeight = height - margin.top - margin.bottom;
 
+    const [minLines, maxLines] = d3.extent(commits, d => d.totalLines);
+    const rScale = d3.scaleSqrt()
+    .domain([minLines, maxLines])
+    .range([3, 20]); 
+
     const colorScale = d3.scaleSequential()
         .domain([24, 0])
         .interpolator(d3.interpolatePlasma);
@@ -115,20 +120,24 @@ function renderScatterPlot(data, commits) {
         svg.append('g')
         .attr('class', 'dots')
         .selectAll('circle')
-        .data(commits)
+        .data(d3.sort(commits, d => -d.totalLines))
         .join('circle')
         .attr('cx', d => xScale(d.datetime))
         .attr('cy', d => yScale(d.hourFrac))
-        .attr('r', 5)
+        .attr('r', d => rScale(d.totalLines))
         .attr('fill', d => colorScale(d.hourFrac))
         .attr('opacity', 0.7)
         .on('mouseenter', (event, commit) => {
-          renderTooltipContent(commit);
-          updateTooltipVisibility(true);
-          updateTooltipPosition(event);
+        d3.select(event.currentTarget).attr('opacity', 1);
+            renderTooltipContent(commit);
+            updateTooltipVisibility(true);
+            updateTooltipPosition(event);
         })
         .on('mousemove', updateTooltipPosition)
-        .on('mouseleave', () => updateTooltipVisibility(false));
+        .on('mouseleave', (event) => {
+        d3.select(event.currentTarget).attr('opacity', 0.7);
+        updateTooltipVisibility(false);
+    });
 }
 
 let data = await loadData();

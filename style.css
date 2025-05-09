@@ -244,3 +244,11 @@ dl.info[hidden]:not(:hover, :focus-within) {
   opacity: 0;
   visibility: hidden;
 }
+
+circle {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  transform-origin: center;
+}
+circle:hover {
+  transform: scale(1.25);
+}
