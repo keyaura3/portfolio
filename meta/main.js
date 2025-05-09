@@ -1,6 +1,8 @@
 
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
+let xScale, yScale;
+
 async function loadData() {
   const data = await d3.csv('loc.csv', (row) => ({
     ...row,
@@ -42,29 +44,23 @@ function processCommits(data) {
 }
 
 function renderCommitInfo(data, commits) {
-    // Create the dl element
     const dl = d3.select('#stats').append('dl').attr('class', 'stats');
   
-    // Add total LOC
     dl.append('dt').html('Total <abbr title="Lines of code">LOC</abbr>');
     dl.append('dd').text(data.length);
   
-    // Add total commits
     dl.append('dt').text('Total commits');
     dl.append('dd').text(commits.length);
   
-    // Time of day most work is done
     const hourCounts = d3.rollup(data, v => v.length, d => d.datetime.getHours());
     const peakHour = Array.from(hourCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
     dl.append('dt').text('Most active hour');
     dl.append('dd').text(`${peakHour}:00`);
 
-    // Average line length
     const avgLength = d3.mean(data, d => d.length).toFixed(2);
     dl.append('dt').text('Average line length (chars)');
     dl.append('dd').text(avgLength);
 
-    // Day of the week most work is done
     const dayCounts = d3.rollup(data, v => v.length, d => d.datetime.getDay());
     const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const peakDay = Array.from(dayCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
@@ -88,21 +84,21 @@ function renderScatterPlot(data, commits) {
 
     const colorScale = d3.scaleSequential()
         .domain([24, 0])
-        .interpolator(d3.interpolatePlasma);
+        .interpolator(d3.interpolateCool);
 
     const svg = d3.select('#chart')
         .append('svg')
         .attr('viewBox', `0 0 ${width} ${height}`)
         .style('overflow', 'visible');
 
-    const xScale = d3.scaleTime()
+    xScale = d3.scaleTime()
         .domain(d3.extent(commits, d => d.datetime))
         .range([margin.left, margin.left + usableWidth])
         .nice();
 
-    const yScale = d3.scaleLinear()
-        .domain([0, 24])
-        .range([margin.top + usableHeight, margin.top]);
+    yScale = d3.scaleLinear()
+        .domain([24, 0])
+        .range([height - margin.bottom, margin.top]);
 
     svg.append('g')
         .attr('class', 'gridlines')
@@ -117,7 +113,7 @@ function renderScatterPlot(data, commits) {
         .attr('transform', `translate(${margin.left}, 0)`)
         .call(d3.axisLeft(yScale).tickFormat(d => `${String(d % 24).padStart(2, '0')}:00`));
 
-        svg.append('g')
+    svg.append('g')
         .attr('class', 'dots')
         .selectAll('circle')
         .data(d3.sort(commits, d => -d.totalLines))
@@ -138,7 +134,15 @@ function renderScatterPlot(data, commits) {
         d3.select(event.currentTarget).attr('opacity', 0.7);
         updateTooltipVisibility(false);
     });
+    
+    const brush = d3.brush()
+        .on('start brush end', brushed);
+
+    svg.call(brush);
+
+    svg.selectAll('.dots, .overlay ~ *').raise();
 }
+
 
 let data = await loadData();
 let commits = processCommits(data);
@@ -146,13 +150,23 @@ let commits = processCommits(data);
 renderCommitInfo(data, commits);
 renderScatterPlot(data, commits);
 
+d3.select(svg).call(d3.brush().on('start brush end', brushed));
+
 function renderTooltipContent(commit) {
-    document.getElementById('commit-link').textContent = commit.id;
-    document.getElementById('commit-link').href = commit.url;
-    document.getElementById('commit-date').textContent = commit.date;
     document.getElementById('commit-time').textContent = commit.time;
     document.getElementById('commit-author').textContent = commit.author;
     document.getElementById('commit-lines').textContent = commit.totalLines;
+
+    const link = document.getElementById('commit-link');
+    const date = document.getElementById('commit-date');
+
+    if (Object.keys(commit).length === 0) return;
+
+    link.href = commit.url;
+    link.textContent = commit.id;
+    date.textContent = commit.datetime?.toLocaleString('en', {
+        dateStyle: 'full',
+    });
 }
   
 function updateTooltipVisibility(isVisible) {
@@ -165,4 +179,70 @@ function updateTooltipPosition(event) {
     tooltip.style.left = `${event.clientX + 10}px`;
     tooltip.style.top = `${event.clientY + 10}px`;
 }
-  
+
+function brushed(event) {
+    console.log(event);
+    const selection = event.selection;
+    d3.selectAll('circle').classed('selected', d => 
+        isCommitSelected(selection, d)
+    );
+    renderSelectionCount(selection);
+    renderLanguageBreakdown(selection);
+}
+
+function isCommitSelected(selection, d) {
+  if (!selection) return false;
+
+   const [x0, x1] = selection.map((d) => d[0]); 
+   const [y0, y1] = selection.map((d) => d[1]); 
+   const x = xScale(d.datetime); 
+   const y = yScale(d.hourFrac); 
+   return x >= x0 && x <= x1 && y >= y0 && y <= y1; 
+}
+
+function renderSelectionCount(selection) {
+  const selectedCommits = selection
+    ? commits.filter((d) => isCommitSelected(selection, d))
+    : [];
+
+  const countElement = document.querySelector('#selection-count');
+  countElement.textContent = `${
+    selectedCommits.length || 'No'
+  } commits selected`;
+
+  return selectedCommits;
+}
+
+function renderLanguageBreakdown(selection) {
+  const selectedCommits = selection
+    ? commits.filter((d) => isCommitSelected(selection, d))
+    : [];
+  const container = document.getElementById('language-breakdown');
+
+  if (selectedCommits.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  const requiredCommits = selectedCommits.length ? selectedCommits : commits;
+  const lines = requiredCommits.flatMap((d) => d.lines);
+
+  // Use d3.rollup to count lines per language
+  const breakdown = d3.rollup(
+    lines,
+    (v) => v.length,
+    (d) => d.type,
+  );
+
+  // Update DOM with breakdown
+  container.innerHTML = '';
+
+  for (const [language, count] of breakdown) {
+    const proportion = count / lines.length;
+    const formatted = d3.format('.1~%')(proportion);
+
+    container.innerHTML += `
+            <dt>${language}</dt>
+            <dd>${count} lines (${formatted})</dd>
+        `;
+  }
+}

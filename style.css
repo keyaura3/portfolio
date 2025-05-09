@@ -249,6 +249,24 @@ circle {
   transition: transform 0.2s ease, opacity 0.2s ease;
   transform-origin: center;
 }
-circle:hover {
-  transform: scale(1.25);
+
+@keyframes marching-ants {
+  to {
+    stroke-dashoffset: -8; /* 5 + 3 */
+  }
 }
+
+.selection {
+  fill: #eee;
+  fill-opacity: 0.4;
+  stroke: black;
+  stroke-dasharray: 4 2;
+}
+
+/* circle:hover {
+  transform: scale(1.05);
+} */
+circle.selected {
+  fill: #ff6b6b;
+}
+
