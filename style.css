@@ -316,4 +316,27 @@ circle {
   border-radius: 50%;
 }
 
+#scrolly-1 {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+}
+
+#scatter-story {
+  flex: 1;
+  padding-bottom: 100vh;
+}
+
+#scatter-plot {
+  flex: 1;
+  position: sticky;
+  top: 0;
+  height: 50vh;
+}
+
+.step {
+  margin-bottom: 100vh;
+}
+
+
 
