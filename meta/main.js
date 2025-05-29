@@ -1,4 +1,3 @@
-
 import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7.9.0/+esm';
 
 let xScale, yScale;
@@ -6,7 +5,7 @@ let xScale, yScale;
 async function loadData() {
   const data = await d3.csv('loc.csv', (row) => ({
     ...row,
-    line: Number(row.line), // or just +row.line
+    line: Number(row.line),
     depth: Number(row.depth),
     length: Number(row.length),
     date: new Date(row.date + 'T00:00' + row.timezone),
@@ -35,8 +34,9 @@ function processCommits(data) {
   
         Object.defineProperty(ret, 'lines', {
           value: lines,
-          // What other options do we need to set?
-          // Hint: look up configurable, writable, and enumerable
+          configurable: true,
+          writable: false,
+          enumerable: false
         });
   
         return ret;
@@ -44,30 +44,31 @@ function processCommits(data) {
 }
 
 function renderCommitInfo(data, commits) {
-    const dl = d3.select('#stats').append('dl').attr('class', 'stats');
-  
-    dl.append('dt').html('Total <abbr title="Lines of code">LOC</abbr>');
-    dl.append('dd').text(data.length);
-  
-    dl.append('dt').text('Total commits');
-    dl.append('dd').text(commits.length);
-  
-    const hourCounts = d3.rollup(data, v => v.length, d => d.datetime.getHours());
-    const peakHour = Array.from(hourCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
-    dl.append('dt').text('Most active hour');
-    dl.append('dd').text(`${peakHour}:00`);
+  d3.select('#stats').selectAll('*').remove();
+  const dl = d3.select('#stats').append('dl').attr('class', 'stats');
 
-    const avgLength = d3.mean(data, d => d.length).toFixed(2);
-    dl.append('dt').text('Average line length (chars)');
-    dl.append('dd').text(avgLength);
+  dl.append('dt').html('Total <abbr title="Lines of code">LOC</abbr>');
+  dl.append('dd').text(data.length);
 
-    const dayCounts = d3.rollup(data, v => v.length, d => d.datetime.getDay());
-    const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const peakDay = Array.from(dayCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
-    dl.append('dt').text('Most active day');
-    dl.append('dd').text(dayMap[peakDay]);
+  dl.append('dt').text('Total commits');
+  dl.append('dd').text(commits.length);
 
+  const hourCounts = d3.rollup(data, v => v.length, d => d.datetime.getHours());
+  const peakHour = Array.from(hourCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
+  dl.append('dt').text('Most active hour');
+  dl.append('dd').text(`${peakHour}:00`);
+
+  const avgLength = d3.mean(data, d => d.length).toFixed(2);
+  dl.append('dt').text('Average line length (chars)');
+  dl.append('dd').text(avgLength);
+
+  const dayCounts = d3.rollup(data, v => v.length, d => d.datetime.getDay());
+  const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const peakDay = Array.from(dayCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
+  dl.append('dt').text('Most active day');
+  dl.append('dd').text(dayMap[peakDay]);
 }
+
 
 function renderScatterPlot(data, commits) {
     const width = 1000;
@@ -106,17 +107,19 @@ function renderScatterPlot(data, commits) {
         .call(d3.axisLeft(yScale).tickFormat('').tickSize(-usableWidth));
 
     svg.append('g')
+        .attr('class', 'x-axis')
         .attr('transform', `translate(0, ${margin.top + usableHeight})`)
         .call(d3.axisBottom(xScale));
 
     svg.append('g')
+        .attr('class', 'y-axis')
         .attr('transform', `translate(${margin.left}, 0)`)
         .call(d3.axisLeft(yScale).tickFormat(d => `${String(d % 24).padStart(2, '0')}:00`));
 
     svg.append('g')
         .attr('class', 'dots')
         .selectAll('circle')
-        .data(d3.sort(commits, d => -d.totalLines))
+        .data(d3.sort(commits, d => -d.totalLines), d => d.id)
         .join('circle')
         .attr('cx', d => xScale(d.datetime))
         .attr('cy', d => yScale(d.hourFrac))
@@ -143,6 +146,52 @@ function renderScatterPlot(data, commits) {
     svg.selectAll('.dots, .overlay ~ *').raise();
 }
 
+function updateScatterPlot(data, commits) {
+    const width = 1000;
+    const height = 600;
+    const margin = { top: 10, right: 10, bottom: 30, left: 40 };
+    const usableHeight = height - margin.top - margin.bottom;
+
+    const svg = d3.select('#chart').select('svg');
+
+    xScale.domain(d3.extent(commits, d => d.datetime));
+
+    const [minLines, maxLines] = d3.extent(commits, d => d.totalLines);
+    const rScale = d3.scaleSqrt().domain([minLines, maxLines]).range([3, 20]);
+
+    const colorScale = d3.scaleSequential()
+        .domain([24, 0])
+        .interpolator(d3.interpolateCool);
+
+    const xAxis = d3.axisBottom(xScale);
+    const xAxisGroup = svg.select('g.x-axis');
+    xAxisGroup.selectAll('*').remove();
+    xAxisGroup.call(xAxis);
+
+    const dots = svg.select('g.dots');
+
+    const sortedCommits = d3.sort(commits, d => -d.totalLines);
+    dots
+        .selectAll('circle')
+        .data(sortedCommits, d => d.id)
+        .join('circle')
+        .attr('cx', d => xScale(d.datetime))
+        .attr('cy', d => yScale(d.hourFrac))
+        .attr('r', d => rScale(d.totalLines))
+        .attr('fill', d => colorScale(d.hourFrac))
+        .attr('opacity', 0.7)
+        .on('mouseenter', (event, commit) => {
+            d3.select(event.currentTarget).attr('opacity', 1);
+            renderTooltipContent(commit);
+            updateTooltipVisibility(true);
+            updateTooltipPosition(event);
+        })
+        .on('mousemove', updateTooltipPosition)
+        .on('mouseleave', (event) => {
+            d3.select(event.currentTarget).attr('opacity', 0.7);
+            updateTooltipVisibility(false);
+        });
+}
 
 let data = await loadData();
 let commits = processCommits(data);
@@ -150,10 +199,8 @@ let commits = processCommits(data);
 renderCommitInfo(data, commits);
 renderScatterPlot(data, commits);
 
-d3.select(svg).call(d3.brush().on('start brush end', brushed));
-
 function renderTooltipContent(commit) {
-    document.getElementById('commit-time').textContent = commit.time;
+    document.getElementById('commit-time-tooltip').textContent = commit.time;
     document.getElementById('commit-author').textContent = commit.author;
     document.getElementById('commit-lines').textContent = commit.totalLines;
 
@@ -247,6 +294,38 @@ function renderLanguageBreakdown(selection) {
   }
 }
 
+function updateFileDisplay(filteredCommits) {
+  let lines = filteredCommits.flatMap((d) => d.lines);
+  let files = d3
+    .groups(lines, d => d.file)
+    .map(([name, lines]) => ({ name, lines }))
+    .sort((a, b) => b.lines.length - a.lines.length);
+
+  const filesContainer = d3.select('#files')
+    .selectAll('div')
+    .data(files, d => d.name)
+    .join(
+      enter => enter.append('div').call(div => {
+        div.append('dt').append('code');
+        div.append('dd');
+      })
+    );
+
+  filesContainer.select('dt > code').text(d => d.name);
+  const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
+
+  filesContainer.select('dd')
+    .selectAll('div')
+    .data(d => d.lines)
+    .join('div')
+    .attr('class', 'loc')
+    .style('--color', d => colorScale(d.type));
+    // .attr('style', (d) => `--color: ${colors(d.type)}`);
+
+
+}
+
+// Step 1: Evolution visualization
 let commitProgress = 100;
 
 let timeScale = d3.scaleTime()
@@ -258,51 +337,12 @@ let commitMaxTime = timeScale.invert(commitProgress);
 function onTimeSliderChange() {
   commitProgress = +document.getElementById("commit-progress").value;
   commitMaxTime = timeScale.invert(commitProgress);
-
-  document.getElementById("commit-time").textContent =
-    commitMaxTime.toLocaleString("en", { dateStyle: "long", timeStyle: "short" });
-
+  document.getElementById("commit-time").textContent = commitMaxTime.toLocaleString("en", { dateStyle: "long", timeStyle: "short" });
   const filteredCommits = commits.filter(d => d.datetime <= commitMaxTime);
-
   updateScatterPlot(data, filteredCommits);
+  renderCommitInfo(data.filter(d => d.datetime <= commitMaxTime), filteredCommits);
+  updateFileDisplay(filteredCommits);
 }
+
 document.getElementById("commit-progress").addEventListener("input", onTimeSliderChange);
 onTimeSliderChange();
-
-function updateScatterPlot(data, commits) {
-  const svg = d3.select('#chart').select('svg');
-
-  xScale.domain(d3.extent(commits, d => d.datetime));
-
-  const [minLines, maxLines] = d3.extent(commits, d => d.totalLines);
-  const rScale = d3.scaleSqrt().domain([minLines, maxLines]).range([3, 20]);
-
-  const xAxis = d3.axisBottom(xScale);
-  svg.select('g.x-axis').call(xAxis);
-
-  const dots = svg.select('g.dots');
-
-  const sortedCommits = d3.sort(commits, d => -d.totalLines);
-  dots
-    .selectAll('circle')
-    .data(sortedCommits, d => d.id)
-    .join('circle')
-    .attr('cx', d => xScale(d.datetime))
-    .attr('cy', d => yScale(d.hourFrac))
-    .attr('r', d => rScale(d.totalLines))
-    .attr('fill', d => d3.interpolateCool(d.hourFrac))
-    .attr('opacity', 0.7)
-    .on('mouseenter', (event, commit) => {
-      d3.select(event.currentTarget).attr('opacity', 1);
-      renderTooltipContent(commit);
-      updateTooltipVisibility(true);
-      updateTooltipPosition(event);
-    })
-    .on('mousemove', updateTooltipPosition)
-    .on('mouseleave', (event) => {
-      d3.select(event.currentTarget).attr('opacity', 0.7);
-      updateTooltipVisibility(false);
-    });
-}
-
-
