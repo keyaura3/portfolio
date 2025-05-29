@@ -110,43 +110,37 @@ h1, h2, h3, h4, h5, h6 {
   font: inherit;
 }
 
-#profile-stats {
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 1.5rem;
-  margin-top: 2rem;
-  padding: 1rem 0;
-  max-width: 700px;
+  margin-block: 2rem;
   font-family: 'Inter', sans-serif;
+  text-align: center;
 }
 
-#profile-stats .stat-card {
-  background-color: #ffffff;
+.stat-card {
+  background-color: white;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   padding: 1rem;
-  text-align: center;
   transition: transform 0.2s ease;
 }
 
-#profile-stats .stat-card:hover {
+.stat-card:hover {
   transform: translateY(-4px);
 }
 
-.stat-icon {
-  font-size: 1.8rem;
-  margin-bottom: 0.5rem;
-}
-
 .stat-label {
-  font-size: 0.9rem;
-  color: #555;
-  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 0.25rem;
 }
 
 .stat-value {
   font-size: 1.4rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #222;
 }
 
@@ -319,23 +313,36 @@ circle {
 #scrolly-1 {
   position: relative;
   display: flex;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 2rem;
+  max-width: 90ch;
+  margin-inline: auto;
+  margin-top: 2rem;
 }
 
 #scatter-story {
   flex: 1;
-  padding-bottom: 100vh;
+  line-height: 1.6;
 }
 
 #scatter-plot {
   flex: 1;
   position: sticky;
-  top: 0;
-  height: 50vh;
+  top: 2rem;
+  height: 70vh;
 }
 
 .step {
-  margin-bottom: 100vh;
+  margin-bottom: 80vh;
+  padding-bottom: 2rem;
+}
+
+.step p {
+  max-width: 40ch;
+}
+
+#files {
+  margin-top: 3rem;
 }
 
 

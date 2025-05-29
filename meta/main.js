@@ -16,8 +16,8 @@ async function loadData() {
 }
 
 function processCommits(data) {
-    return d3
-      .groups(data, (d) => d.commit)
+  return d3.sort(
+    d3.groups(data, d => d.commit)
       .map(([commit, lines]) => {
         let first = lines[0];
         let { author, date, time, timezone, datetime } = first;
@@ -32,43 +32,51 @@ function processCommits(data) {
           hourFrac: datetime.getHours() + datetime.getMinutes() / 60,
           totalLines: lines.length,
         };
-  
         Object.defineProperty(ret, 'lines', {
           value: lines,
           configurable: true,
           writable: false,
           enumerable: false
         });
-  
         return ret;
-    });
+      }),
+    d => d.datetime 
+  );
 }
 
+
 function renderCommitInfo(data, commits) {
-  d3.select('#stats').selectAll('*').remove();
-  const dl = d3.select('#stats').append('dl').attr('class', 'stats');
-
-  dl.append('dt').html('Total <abbr title="Lines of code">LOC</abbr>');
-  dl.append('dd').text(data.length);
-
-  dl.append('dt').text('Total commits');
-  dl.append('dd').text(commits.length);
+  const statsContainer = d3.select('#stats');
+  statsContainer.selectAll('*').remove();
 
   const hourCounts = d3.rollup(data, v => v.length, d => d.datetime.getHours());
   const peakHour = Array.from(hourCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
-  dl.append('dt').text('Most active hour');
-  dl.append('dd').text(`${peakHour}:00`);
 
   const avgLength = d3.mean(data, d => d.length).toFixed(2);
-  dl.append('dt').text('Average line length (chars)');
-  dl.append('dd').text(avgLength);
-
   const dayCounts = d3.rollup(data, v => v.length, d => d.datetime.getDay());
   const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const peakDay = Array.from(dayCounts).reduce((a, b) => (a[1] > b[1] ? a : b))[0];
-  dl.append('dt').text('Most active day');
-  dl.append('dd').text(dayMap[peakDay]);
+
+  const stats = [
+    { label: 'COMMITS', value: commits.length },
+    { label: 'TOTAL LOC', value: data.length },
+    { label: 'MOST ACTIVE HOUR', value: `${peakHour}:00` },
+    { label: 'AVG LINE LENGTH', value: avgLength },
+    { label: 'MOST ACTIVE DAY', value: dayMap[peakDay] }
+  ];
+
+  const grid = statsContainer.append('div').attr('class', 'stats-grid');
+
+  const cards = grid.selectAll('.stat-card')
+    .data(stats)
+    .enter()
+    .append('div')
+    .attr('class', 'stat-card');
+
+  cards.append('div').attr('class', 'stat-label').text(d => d.label);
+  cards.append('div').attr('class', 'stat-value').text(d => d.value);
 }
+
 
 
 function renderScatterPlot(data, commits) {
@@ -274,14 +282,12 @@ function renderLanguageBreakdown(selection) {
   const requiredCommits = selectedCommits.length ? selectedCommits : commits;
   const lines = requiredCommits.flatMap((d) => d.lines);
 
-  // Use d3.rollup to count lines per language
   const breakdown = d3.rollup(
     lines,
     (v) => v.length,
     (d) => d.type,
   );
 
-  // Update DOM with breakdown
   container.innerHTML = '';
 
   for (const [language, count] of breakdown) {
@@ -325,7 +331,6 @@ function updateFileDisplay(filteredCommits) {
 
 }
 
-// Step 1: Evolution visualization
 let commitProgress = 100;
 
 let timeScale = d3.scaleTime()
@@ -371,8 +376,13 @@ d3.select('#scatter-story')
   );
 
 function onStepEnter(response) {
-  console.log(response.element.__data__.datetime);
+  const commit = response.element.__data__;
+  const filteredCommits = commits.filter(d => d.datetime <= commit.datetime);
+  updateScatterPlot(data, filteredCommits);
+  renderCommitInfo(data.filter(d => d.datetime <= commit.datetime), filteredCommits);
+  updateFileDisplay(filteredCommits); 
 }
+
 
 const scroller = scrollama();
 scroller
@@ -386,5 +396,5 @@ scroller
 
 
 
-document.getElementById("commit-progress").addEventListener("input", onTimeSliderChange);
+// document.getElementById("commit-progress").addEventListener("input", onTimeSliderChange);
 onTimeSliderChange();

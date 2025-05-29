@@ -10,18 +10,23 @@
 </head>
 <body>
     <div id="scrolly-1">
-    <div id="scatter-story">some filler text here</div>
+    <div id="scatter-story"></div>
     <div id="scatter-plot">
-        <div style="display: flex; align-items: baseline;">
+        <!-- <div style="display: flex; align-items: baseline;">
         <label for="commit-progress">Show commits until:</label>
         <input type="range" id="commit-progress" min="0" max="100" value="100" style="margin-left: 1em;">
         <time id="commit-time" style="margin-left: auto;"></time>
-        </div>
+        </div> -->
         <div id="stats"></div>
         <h2>Commits by time of day</h2>
         <div id="chart"></div>
         <dl id="language-breakdown" class="stats"></dl>
     </div>
+    </div>
+
+    <div id="file-visualization">
+        <h2>Files by commit</h2>
+        <dl id="files"></dl>
     </div>
 
     <dl id="commit-tooltip" class="info tooltip" hidden>
