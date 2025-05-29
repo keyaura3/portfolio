@@ -310,9 +310,8 @@ function updateFileDisplay(filteredCommits) {
         div.append('dd');
       })
     );
-
-  filesContainer.select('dt > code').text(d => d.name);
   const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
+  filesContainer.select('dt > code').text(d => d.name);
 
   filesContainer.select('dd')
     .selectAll('div')
