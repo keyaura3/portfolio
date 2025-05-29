@@ -9,6 +9,11 @@
     <script src="main.js" type="module"></script>
 </head>
 <body>
+    <div style="display: flex; align-items: baseline;">
+        <label for="commit-progress">Show commits until:</label>
+        <input type="range" id="commit-progress" min="0" max="100" value="100" style="margin-left: 1em;">
+        <time id="commit-time" style="margin-left: auto;"></time>
+    </div>
     <div id="stats"></div>
     <h2>Commits by time of day</h2>
     <div id="chart"></div>

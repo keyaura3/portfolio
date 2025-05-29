@@ -246,3 +246,63 @@ function renderLanguageBreakdown(selection) {
         `;
   }
 }
+
+let commitProgress = 100;
+
+let timeScale = d3.scaleTime()
+  .domain(d3.extent(commits, d => d.datetime))
+  .range([0, 100]);
+
+let commitMaxTime = timeScale.invert(commitProgress);
+
+function onTimeSliderChange() {
+  commitProgress = +document.getElementById("commit-progress").value;
+  commitMaxTime = timeScale.invert(commitProgress);
+
+  document.getElementById("commit-time").textContent =
+    commitMaxTime.toLocaleString("en", { dateStyle: "long", timeStyle: "short" });
+
+  const filteredCommits = commits.filter(d => d.datetime <= commitMaxTime);
+
+  updateScatterPlot(data, filteredCommits);
+}
+document.getElementById("commit-progress").addEventListener("input", onTimeSliderChange);
+onTimeSliderChange();
+
+function updateScatterPlot(data, commits) {
+  const svg = d3.select('#chart').select('svg');
+
+  xScale.domain(d3.extent(commits, d => d.datetime));
+
+  const [minLines, maxLines] = d3.extent(commits, d => d.totalLines);
+  const rScale = d3.scaleSqrt().domain([minLines, maxLines]).range([3, 20]);
+
+  const xAxis = d3.axisBottom(xScale);
+  svg.select('g.x-axis').call(xAxis);
+
+  const dots = svg.select('g.dots');
+
+  const sortedCommits = d3.sort(commits, d => -d.totalLines);
+  dots
+    .selectAll('circle')
+    .data(sortedCommits, d => d.id)
+    .join('circle')
+    .attr('cx', d => xScale(d.datetime))
+    .attr('cy', d => yScale(d.hourFrac))
+    .attr('r', d => rScale(d.totalLines))
+    .attr('fill', d => d3.interpolateCool(d.hourFrac))
+    .attr('opacity', 0.7)
+    .on('mouseenter', (event, commit) => {
+      d3.select(event.currentTarget).attr('opacity', 1);
+      renderTooltipContent(commit);
+      updateTooltipVisibility(true);
+      updateTooltipPosition(event);
+    })
+    .on('mousemove', updateTooltipPosition)
+    .on('mouseleave', (event) => {
+      d3.select(event.currentTarget).attr('opacity', 0.7);
+      updateTooltipVisibility(false);
+    });
+}
+
+
