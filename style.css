@@ -310,36 +310,50 @@ circle {
   border-radius: 50%;
 }
 
-#scrolly-1 {
-  position: relative;
+#scrolly-1,
+#scrolly-2 {
   display: flex;
   align-items: flex-start;
   gap: 2rem;
+  margin-top: 2rem;
   max-width: 90ch;
   margin-inline: auto;
-  margin-top: 2rem;
 }
 
-#scatter-story {
+#scatter-story,
+#scatter-story-left {
   flex: 1;
   line-height: 1.6;
 }
 
-#scatter-plot {
+#scatter-plot,
+#file-visualization {
   flex: 1;
   position: sticky;
   top: 2rem;
   height: 70vh;
 }
 
+
 .step {
   margin-bottom: 80vh;
   padding-bottom: 2rem;
+  max-width: 40ch;
+  transition: transform 0.3s ease;
 }
 
-.step p {
-  max-width: 40ch;
+.step.left {
+  margin-left: 0;
+  margin-right: auto;
+  text-align: left;
 }
+
+.step.right {
+  margin-left: auto;
+  margin-right: 0;
+  text-align: right;
+}
+
 
 #files {
   margin-top: 3rem;
